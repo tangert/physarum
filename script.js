@@ -21,6 +21,7 @@ const midX =  WIDTH/2
 const midY = HEIGHT/2
 
 function setup() {
+  frameRate(30);
   createCanvas(WIDTH,HEIGHT)
   background(0)
 }
@@ -59,10 +60,10 @@ function Particle(x,y,r) {
   
   // Movement functions
   // Used for checking attempts without actually moving the particle.
-  function attemptMoveForward(stepAmount) {
+  function getMoveForward(stepAmount, at) {
     return {
-      x: this.position.x + stepAmount * Math.cos(this.orientation),
-      y: this.position.y + stepAmount * Math.sin(this.orientation)
+      x: this.position.x + stepAmount * Math.cos(at || this.orientation),
+      y: this.position.y + stepAmount * Math.sin(at || this.orientation)
     }
   }
 
@@ -94,14 +95,14 @@ function Particle(x,y,r) {
     scaleBy,
     moveTo,
     moveBy,
-    attemptMoveForward,
+    getMoveForward,
     draw
   }
 }
 
 // GLOBAL VARIABLES
-const numParticles = 500;
-const r = 2.5;
+const numParticles = 100;
+const r = 2;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
 
 function getRandomOrientation() {
@@ -120,9 +121,10 @@ const particles = numParticleArr.map(n =>{
 })
 
 // convert between screen coordinates and grid coorindates to be able to query the trail map easily
-
+// 22.5 degrees
 const rotateAmount = Math.PI/4;
-const stepAmount = Math.max(WIDTH,HEIGHT)*0.01;
+const percent = (num) => Math.max(WIDTH,HEIGHT)*(num/100)
+const stepAmount = percent(1)
 const decayAmount = 0.1;
 
 const sensorAngle = Math.PI/4;
@@ -148,7 +150,6 @@ const yLength = trailMap[0].length
 
 // What does depositing onto the trail do?
 // get the pixel value of the deposit cell  by multiplying its position in the 2d array by the width/height
-
 function gridToScreen(x,y) {
   const xScale = x/xLength
   const yScale = y/yLength
@@ -166,25 +167,34 @@ function screenToGrid(x,y) {
   return {x: xPos, y: yPos }
 }
 
+// Checks if a pair of coordinates is in bounds in the trail map
+function inBounds(x,y) {
+  return (
+       x >= 0 &&
+       y < yLength && 
+       y >= 0 &&  
+       x < xLength
+  );
+}
+
 // MAIN LOOP
 function draw() {
   background(0);
 
-  particles.forEach((p,i) => {
-      // MOTOR STAGE 
+  for(let i = 0; i < particles.length; i++) {
+    const p = particles[i]
+    // MOTOR STAGE 
     const currGridPos = screenToGrid(p.position.x, p.position.y)
     const curr = trailMap[currGridPos.x][currGridPos.y]
-
+    // const stepJiggle = sin(frameCount/10)+0.5
+    const stepJiggle = 1
 
     // Attempt to move forward
-    const attemptPos = p.attemptMoveForward(stepAmount)
+    const attemptPos = p.getMoveForward(stepAmount*stepJiggle)
     const nextGridPos = screenToGrid(attemptPos.x, attemptPos.y)
 
     // First, check if it's in bounds
-    if(nextGridPos.x >= 0 &&
-       nextGridPos.y < yLength && 
-       nextGridPos.y >= 0 &&  
-       nextGridPos.x < xLength) {
+    if(inBounds(nextGridPos.x, nextGridPos.y)){
       const next = trailMap[nextGridPos.x][nextGridPos.y]
       // you can move forward if that grid cell hasn't been occupied yet!
       // have to handle out of bounds errors...
@@ -204,36 +214,69 @@ function draw() {
       }
 
     } else {
-      // Move to a random position for now if you're out of bounds
-      const {x,y} = getRandomPosition()
-      p.moveTo(x,y)
+
+      // If you  are about to go out of bounds, bounce off.
+      p.rotateBy(Math.PI)
     }
 
       // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
 
     // SENSORY STAGE 
-    // rn these are dummy placeholders 
-    const F = 1;
-    const FL = 1;
-    const FR = 1;
+    const Fpos = p.getMoveForward(sensorOffset)
+    const FposGrid = screenToGrid(Fpos.x, Fpos.y)
 
-    if(F > FL && F > FR) {
-      // stay facing  same direction
-    } else if (F < FL && F < FR) {
-      //rotate randomly left or right by rotateAmount
-    } else if( FL < FR) {
-      // rotate right by RA 
-    } else if( FR < FL) {
-      // rotate left by RA
+    const FLpos = p.getMoveForward(sensorOffset, p.orientation - sensorAngle);
+    const FLposGrid = screenToGrid(FLpos.x, FLpos.y)
+
+    const FRpos = p.getMoveForward(sensorOffset, p.orientation + sensorAngle);
+    const FRposGrid = screenToGrid(FRpos.x, FRpos.y)
+
+    // Make sure all the sensors  are also inbounds. 
+    if(inBounds(FposGrid.x, FposGrid.y) && 
+       inBounds(FLposGrid.x, FLposGrid.y) && 
+       inBounds(FRposGrid.x, FRposGrid.y)) {
+         
+        const F = trailMap[FposGrid.x][FposGrid.y].value
+        const FL = trailMap[FLposGrid.x][FLposGrid.y].value
+        const FR = trailMap[FRposGrid.x][FRposGrid.y].value
+
+        if(F > FL && F > FR) {
+          // stay facing  same direction
+          continue;
+        } else if (F < FL && F < FR) {
+          //rotate randomly left or right by rotateAmount
+          if(Math.random() > 0.5) {
+            p.rotateBy(-rotateAmount)
+          } else {
+            p.rotateBy(rotateAmount)
+          }
+        } else if( FL < FR) {
+          // rotate right by RA 
+          p.rotateBy(rotateAmount)
+        } else if( FR < FL) {
+          // rotate left by RA
+          p.rotateBy(-rotateAmount)
+        }
     } else {
-      // continue facing same  direction
+      // Otherwise hit a wall, turn around
+      p.rotateBy(Math.PI)
     }
-
-    // check if there's already another particle in that attempt position...
-    // how do you easily check the positions of other particles in the grid?
-    // maybe the grid should store whether there's a particle in it?
-
-    // Finally, after its done sensing, draw
+    // Finally, after its done sensing, draw the particle
+    fill(255)
     p.draw()
-  })
+  }
+
+  // Diffuse and decay the trail map
+  for(let r = 0; r < trailMap.length; r++) {
+    const row = trailMap[r]
+    for(let c = 0; c < trailMap[r].length; c++) {
+      const point = trailMap[r][c]
+      const screenPoint = gridToScreen(r,c)
+      trailMap[r][c].value -= (trailMap[r][c].value * decayAmount)
+      let trailColor = color(255);
+      trailColor.setAlpha(trailMap[r][c].value)
+      fill(trailColor)
+      ellipse(screenPoint.x, screenPoint.y, 2.5, 2.5)
+    }
+  }
 }
