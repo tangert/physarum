@@ -100,20 +100,23 @@ function Particle(x,y,r) {
 }
 
 // GLOBAL VARIABLES
-const numParticles = 100;
+const numParticles = 20;
 const r = 2.5;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
 
-function getRandomPosition(width, height) {
-  return {x: Math.random()*width, y: Math.random()* height}
+function getRandomOrientation() {
+  return Math.random()*Math.PI*2
+}
+function getRandomPosition() {
+  return {x: Math.random()*WIDTH, y: Math.random()*HEIGHT}
 }
 
 const numParticleArr = Array(numParticles).fill(0);
 
 // Declare the particles once.
 const particles = numParticleArr.map(n =>{
-  const pos = getRandomPosition(WIDTH, HEIGHT);
-  return Particle(pos.x, pos.y, r)
+  const {x,y} = getRandomPosition();
+  return Particle(x, y, r)
 })
 
 // convert between screen coordinates and grid coorindates to be able to query the trail map easily
@@ -130,9 +133,16 @@ const sensorOffset = 1;
 const avgWeight = 1;
 
 // How much each particle drops on the trail map when it successfully moves. 
-const deposit = 5;
+const depositAmount = 5;
 
-const trailMap = numParticleArr.map(n => [...numParticleArr])
+const trailMap = numParticleArr.map(n => numParticleArr.map(n => {
+    return {
+      occupied: false,
+      value: 0 
+    }
+  })
+);
+
 console.log(trailMap)
 const xLength = trailMap.length
 const yLength = trailMap[0].length
@@ -152,28 +162,39 @@ function screenToGrid(x,y) {
   const xScale = x/WIDTH;
   const yScale = y/HEIGHT;
   // Need to round because you can only index by integers
-  const xPos = Math.round(xScale*yLength)
-  const yPos = Math.round(yScale*yLength);
+  const xPos = Math.floor(xScale*yLength)
+  const yPos = Math.floor(yScale*yLength);
   return {x: xPos, y: yPos }
 }
 
-function depositTrail(x,y) {
-}
+console.log(trailMap)
 
 // MAIN LOOP
 function draw() {
+  background(0);
+
   particles.forEach((p,i) => {
       // MOTOR STAGE 
     const attemptPos = p.attemptMoveForward(stepAmount)
+    const currGridPos = screenToGrid(p.position.x, p.position.y)
+    const nextGridPos = screenToGrid(attemptPos.x, attemptPos.y)
 
-    // TODO: get this boolean from checking ifi there's already a particle in the position ahead
-    const movedForward = false;
-    if(movedForward) {
+    // you can move forward if that grid cell hasn't been occupied yet!
+    // have to handle out of bounds errors...
+    const canMoveForward = !trailMap[nextGridPos.x][nextGridPos.y].occupied;
+
+    if(canMoveForward) {
+      // Deposit the ammount
+      trailMap[nextGridPos.x][nextGridPos.y].value += depositAmount;
+      // set current spot to open
+      trailMap[currGridPos.x][currGridPos.y].occupied = false;
+      // set the next spot (which you are about to move to) to occupied
+      trailMap[nextGridPos.x][nextGridPos.y].occupied = true;
+       // move the particle
       p.moveTo(attemptPos.x, attemptPos.y)
-      depositTrail(attemptPos.x, attemptPos.y)
     } else {
       // Choose a random orientation
-      p.rotateTo(Math.random()*Math.PI*2);
+      p.rotateTo(getRandomOrientation());
     }
 
       // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
