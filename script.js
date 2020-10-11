@@ -51,11 +51,9 @@ map, resulting in an autocrine mode of stimulus/response.
 // turn left (by RA)
 
 // move by StA (Step amount)
-
 // deposite
 // diffuse 
 // decay
-
 
 //LAYERS:
 // DATA LAYER
@@ -71,18 +69,36 @@ function setup() {
   createCanvas(WIDTH,HEIGHT)
 }
 
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Particle object.
 function Particle(x,y,r) {
+  this.id = uuidv4();
   this.orientation = Math.PI;
   this.position = {x,y};
   this.r = r;
 
   // Rotation functions
   function rotateTo(rad) {
-    this.r = rad;
+    this.orientation = rad;
   }
   function rotateBy(rad) {
-    this.r += rad;
+    this.orientation += rad;
+  }
+
+  // Scaling functions
+  function scaleTo(radius) {
+    this.r = radius
+  }
+
+  function scaleBy(scale) {
+    this.r *= scale 
   }
 
   // Movement functions
@@ -95,20 +111,23 @@ function Particle(x,y,r) {
     this.y = y;
   }
 
-  // Rendering function
-  function render() {
+  // Main rendering function
+  function draw() {
     return ellipse(this.position.x, this.position.y, this.r, this.r)
   }
 
   // Object
   return {
+    id,
     position: this.position,
     r,
     rotateTo,
     rotateBy,
+    scaleTo,
+    scaleBy,
     moveTo,
     moveBy,
-    render
+    draw
   }
 }
 
@@ -119,6 +138,7 @@ const initialPos = {x: midX-r/2, y: midY-r/2 }
 // Declare the particles once.
 const particles = Array(numParticles).fill(0).map(n => Particle(initialPos.x, initialPos.y, r))
 
+console.log(particles[0])
 
 // MAIN LOOP
 function draw() {
@@ -126,9 +146,9 @@ function draw() {
   const jiggle = sin(frameCount/20);
 
   particles.forEach((p,i) => {
-    const {x,y} = p.position
-    p.position = { x: x+(jiggle*i/10), y: y+(jiggle*i/10)}
-    p.r = p.r + jiggle * i/20
-    p.render()
+    // const {x,y} = p.position
+    // p.position = { x: x+(jiggle*i/10), y: y+(jiggle*i/10)}
+    // p.r = p.r + jiggle * i/20
+    p.draw()
   })
 }
