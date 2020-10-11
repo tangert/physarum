@@ -101,12 +101,22 @@ function Particle(x,y,r) {
   function scaleBy(scale) {
     this.r *= scale 
   }
-
+  
   // Movement functions
-  function moveBy(dx,dy) {
-    this.position.x += dx;
-    this.position.y += dy;
+  // Used for checking attempts without actually moving the particle.
+  function attemptMoveForward(stepAmount) {
+    return {
+      x: this.position.x + stepAmount * Math.cos(this.orientation),
+      y: this.position.y + stepAmount * Math.sin(this.orientation)
+    }
   }
+
+  // Moves by a specific dx and dy at the given orientation
+  function moveBy(dx,dy) {
+    this.position.x += dx * Math.cos(this.orientation);
+    this.position.y += dy * Math.sin(this.orientation);
+  }
+
   function moveTo(x,y) {
     this.position.x = x;
     this.position.y = y;
@@ -129,6 +139,7 @@ function Particle(x,y,r) {
     scaleBy,
     moveTo,
     moveBy,
+    attemptMoveForward,
     draw
   }
 }
@@ -174,14 +185,33 @@ console.log(dataMap)
 console.log(particles[0])
 console.log(trailMap)
 
+function depositTrail(x,y) {
+}
+
 // MAIN LOOP
 function draw() {
   background(0)
   const jiggle = sin(frameCount/20);
 
+  // MOTOR STAGE 
   particles.forEach((p,i) => {
-    const jiggle2 = (jiggle*i/10)
-    p.moveBy(jiggle2, jiggle2)
+    const attemptPos = p.attemptMoveForward(stepAmount)
+    const movedForward = true;
+    if(movedForward) {
+      depositTrail(attemptPos.x, attemptPos.y)
+    } else {
+      // Choose a random orientation
+      p.rotateTo(Math.random()*Math.PI*2);
+    }
+  })
+
+  // SENSORY STAGE
+  particles.forEach((p,i) => {
+    // check if there's already another particle in that attempt position...
+    // how do you easily check the positions of other particles in the grid?
+    // maybe the grid should store whether there's a particle in it?
+
+    // Finally, after its done sensing, draw
     p.draw()
   })
 }
