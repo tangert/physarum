@@ -100,7 +100,7 @@ function Particle(x,y,r) {
 }
 
 // GLOBAL VARIABLES
-const numParticles = 20;
+const numParticles = 10;
 const r = 2.5;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
 
@@ -181,9 +181,8 @@ function draw() {
 
     // you can move forward if that grid cell hasn't been occupied yet!
     // have to handle out of bounds errors...
-    const canMoveForward = !trailMap[nextGridPos.x][nextGridPos.y].occupied;
-
-    if(canMoveForward) {
+    // want particles to go to random position
+    if(!trailMap[nextGridPos.x][nextGridPos.y].occupied) {
       // Deposit the ammount
       trailMap[nextGridPos.x][nextGridPos.y].value += depositAmount;
       // set current spot to open
