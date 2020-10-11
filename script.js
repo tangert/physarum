@@ -185,6 +185,9 @@ console.log(dataMap)
 console.log(particles[0])
 console.log(trailMap)
 
+
+// What does depositing onto the trail do?
+
 function depositTrail(x,y) {
 }
 
@@ -198,6 +201,7 @@ function draw() {
     const attemptPos = p.attemptMoveForward(stepAmount)
     const movedForward = true;
     if(movedForward) {
+      p.moveTo(attemptPos.x, attemptPos.y)
       depositTrail(attemptPos.x, attemptPos.y)
     } else {
       // Choose a random orientation
@@ -207,6 +211,26 @@ function draw() {
 
   // SENSORY STAGE
   particles.forEach((p,i) => {
+
+    // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
+
+    // rn these are dummy placeholders 
+    const F = 1;
+    const FL = 1;
+    const FR = 1;
+
+    if(F > FL && F > FR) {
+      // stay facing  same direction
+    } else if (F < FL && F < FR) {
+      //rotate randomly left or right by rotateAmount
+    } else if( FL < FR) {
+      // rotate right by RA 
+    } else if( FR < FL) {
+      // rotate left by RA
+    } else {
+      // continue facing same  direction
+    }
+    
     // check if there's already another particle in that attempt position...
     // how do you easily check the positions of other particles in the grid?
     // maybe the grid should store whether there's a particle in it?
