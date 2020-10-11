@@ -88,6 +88,7 @@ function Particle(x,y,r) {
   function rotateTo(rad) {
     this.orientation = rad;
   }
+
   function rotateBy(rad) {
     this.orientation += rad;
   }
@@ -120,6 +121,7 @@ function Particle(x,y,r) {
   return {
     id,
     position,
+    orientation,
     r,
     rotateTo,
     rotateBy,
@@ -135,10 +137,42 @@ function Particle(x,y,r) {
 const numParticles = 50
 const r = 10;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
-// Declare the particles once.
-const particles = Array(numParticles).fill(0).map(n => Particle(initialPos.x, initialPos.y, r))
 
+const numParticleArr = Array(numParticles).fill(0);
+
+// Declare the particles once.
+const particles = numParticleArr.map(n => Particle(initialPos.x, initialPos.y, r))
+
+// Stores the particles and their positions.
+const dataMap = {
+  particles
+}
+
+// convert between screen coordinates and grid coorindates to be able to query the trail map easily
+
+const rotateAmount = Math.PI/4;
+const stepAmount = Math.max(WIDTH,HEIGHT)*0.01;
+const decayAmount = 0.1;
+
+const sensorAngle = Math.PI/4;
+// offset in number of grid units.
+const sensorOffset = 1;
+
+// Affect how the trail disperses
+const avgWeight = 1;
+
+// How much each particle drops on the trail map when it successfully moves. 
+const deposit = 5;
+
+const trailMap = {
+  // Stores  deposit data and is read from
+  // Initialize with an nxn array of values.
+  data: numParticleArr.map(n => [...numParticleArr]) 
+}
+
+console.log(dataMap)
 console.log(particles[0])
+console.log(trailMap)
 
 // MAIN LOOP
 function draw() {
@@ -146,7 +180,6 @@ function draw() {
   const jiggle = sin(frameCount/20);
 
   particles.forEach((p,i) => {
-    // const {x,y} = p.position
     const jiggle2 = (jiggle*i/10)
     p.moveBy(jiggle2, jiggle2)
     p.draw()
