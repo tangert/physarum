@@ -133,8 +133,31 @@ const avgWeight = 1;
 const deposit = 5;
 
 const trailMap = numParticleArr.map(n => [...numParticleArr])
+console.log(trailMap)
+const xLength = trailMap.length
+const yLength = trailMap[0].length
 
 // What does depositing onto the trail do?
+// get the pixel value of the deposit cell  by multiplying its position in the 2d array by the width/height
+
+// convert pixel value to grid value by taking proportion and rounding to nearest integer
+
+function gridToScreen(x,y) {
+  const xScale = x/xLength
+  const yScale = y/yLength
+  const xPos = xScale*WIDTH
+  const yPos = yScale*HEIGHT
+  return {x: xPos, y: yPos }
+}
+
+function screenToGrid(x,y) {
+  const xScale = x/WIDTH;
+  const yScale = y/HEIGHT;
+  // Need to round because you can only index by integers
+  const xPos = Math.round(xScale*yLength)
+  const yPos = Math.round(yScale*yLength);
+  return {x: xPos, y: yPos }
+}
 
 function depositTrail(x,y) {
 }
