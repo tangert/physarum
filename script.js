@@ -100,7 +100,7 @@ function Particle(x,y,r) {
 }
 
 // GLOBAL VARIABLES
-const numParticles = 10;
+const numParticles = 500;
 const r = 2.5;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
 
@@ -143,7 +143,6 @@ const trailMap = numParticleArr.map(n => numParticleArr.map(n => {
   })
 );
 
-console.log(trailMap)
 const xLength = trailMap.length
 const yLength = trailMap[0].length
 
@@ -167,33 +166,47 @@ function screenToGrid(x,y) {
   return {x: xPos, y: yPos }
 }
 
-console.log(trailMap)
-
 // MAIN LOOP
 function draw() {
   background(0);
 
   particles.forEach((p,i) => {
       // MOTOR STAGE 
-    const attemptPos = p.attemptMoveForward(stepAmount)
     const currGridPos = screenToGrid(p.position.x, p.position.y)
+    const curr = trailMap[currGridPos.x][currGridPos.y]
+
+
+    // Attempt to move forward
+    const attemptPos = p.attemptMoveForward(stepAmount)
     const nextGridPos = screenToGrid(attemptPos.x, attemptPos.y)
 
-    // you can move forward if that grid cell hasn't been occupied yet!
-    // have to handle out of bounds errors...
-    // want particles to go to random position
-    if(!trailMap[nextGridPos.x][nextGridPos.y].occupied) {
-      // Deposit the ammount
-      trailMap[nextGridPos.x][nextGridPos.y].value += depositAmount;
-      // set current spot to open
-      trailMap[currGridPos.x][currGridPos.y].occupied = false;
-      // set the next spot (which you are about to move to) to occupied
-      trailMap[nextGridPos.x][nextGridPos.y].occupied = true;
-       // move the particle
-      p.moveTo(attemptPos.x, attemptPos.y)
+    // First, check if it's in bounds
+    if(nextGridPos.x >= 0 &&
+       nextGridPos.y < yLength && 
+       nextGridPos.y >= 0 &&  
+       nextGridPos.x < xLength) {
+      const next = trailMap[nextGridPos.x][nextGridPos.y]
+      // you can move forward if that grid cell hasn't been occupied yet!
+      // have to handle out of bounds errors...
+      // want particles to go to random position
+      if(!next.occupied) {
+        // Deposit the ammount
+        next.value += depositAmount;
+        // set current spot to open
+        curr.occupied = false;
+        // set the next spot (which you are about to move to) to occupied
+        next.occupied = true;
+        // move the particle
+        p.moveTo(attemptPos.x, attemptPos.y)
+      } else {
+        // Choose a random orientation
+        p.rotateTo(getRandomOrientation());
+      }
+
     } else {
-      // Choose a random orientation
-      p.rotateTo(getRandomOrientation());
+      // Move to a random position for now if you're out of bounds
+      const {x,y} = getRandomPosition()
+      p.moveTo(x,y)
     }
 
       // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
