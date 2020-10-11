@@ -140,8 +140,6 @@ const yLength = trailMap[0].length
 // What does depositing onto the trail do?
 // get the pixel value of the deposit cell  by multiplying its position in the 2d array by the width/height
 
-// convert pixel value to grid value by taking proportion and rounding to nearest integer
-
 function gridToScreen(x,y) {
   const xScale = x/xLength
   const yScale = y/yLength
