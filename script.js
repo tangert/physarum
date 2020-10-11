@@ -103,12 +103,12 @@ function Particle(x,y,r) {
 
   // Movement functions
   function moveBy(dx,dy) {
-    this.x += x;
-    this.y += y;
+    this.position.x += dx;
+    this.position.y += dy;
   }
   function moveTo(x,y) {
-    this.x = x;
-    this.y = y;
+    this.position.x = x;
+    this.position.y = y;
   }
 
   // Main rendering function
@@ -119,7 +119,7 @@ function Particle(x,y,r) {
   // Object
   return {
     id,
-    position: this.position,
+    position,
     r,
     rotateTo,
     rotateBy,
@@ -133,7 +133,7 @@ function Particle(x,y,r) {
 
 // GLOBAL VARIABLES
 const numParticles = 50
-const r = 50;
+const r = 10;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
 // Declare the particles once.
 const particles = Array(numParticles).fill(0).map(n => Particle(initialPos.x, initialPos.y, r))
@@ -147,8 +147,8 @@ function draw() {
 
   particles.forEach((p,i) => {
     // const {x,y} = p.position
-    // p.position = { x: x+(jiggle*i/10), y: y+(jiggle*i/10)}
-    // p.r = p.r + jiggle * i/20
+    const jiggle2 = (jiggle*i/10)
+    p.moveBy(jiggle2, jiggle2)
     p.draw()
   })
 }
