@@ -100,14 +100,21 @@ function Particle(x,y,r) {
 }
 
 // GLOBAL VARIABLES
-const numParticles = 50
-const r = 10;
+const numParticles = 100;
+const r = 2.5;
 const initialPos = {x: midX-r/2, y: midY-r/2 }
+
+function getRandomPosition(width, height) {
+  return {x: Math.random()*width, y: Math.random()* height}
+}
 
 const numParticleArr = Array(numParticles).fill(0);
 
 // Declare the particles once.
-const particles = numParticleArr.map(n => Particle(initialPos.x, initialPos.y, r))
+const particles = numParticleArr.map(n =>{
+  const pos = getRandomPosition(WIDTH, HEIGHT);
+  return Particle(pos.x, pos.y, r)
+})
 
 // convert between screen coordinates and grid coorindates to be able to query the trail map easily
 
@@ -127,9 +134,6 @@ const deposit = 5;
 
 const trailMap = numParticleArr.map(n => [...numParticleArr])
 
-console.log(particles[0])
-console.log(trailMap)
-
 // What does depositing onto the trail do?
 
 function depositTrail(x,y) {
@@ -137,8 +141,8 @@ function depositTrail(x,y) {
 
 // MAIN LOOP
 function draw() {
-  // MOTOR STAGE 
   particles.forEach((p,i) => {
+      // MOTOR STAGE 
     const attemptPos = p.attemptMoveForward(stepAmount)
 
     // TODO: get this boolean from checking ifi there's already a particle in the position ahead
@@ -150,13 +154,10 @@ function draw() {
       // Choose a random orientation
       p.rotateTo(Math.random()*Math.PI*2);
     }
-  })
 
-  // SENSORY STAGE
-  particles.forEach((p,i) => {
+      // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
 
-    // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
-
+    // SENSORY STAGE 
     // rn these are dummy placeholders 
     const F = 1;
     const FL = 1;
