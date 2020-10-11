@@ -1,63 +1,18 @@
-
-
 /*
-from original paper
+FROM ORIGINAL PAPER
 
 At each execution step of the scheduler, every agent attempts to move forward one step in the current direction.
 
-for p in particles {
-  p.tryMoveForward()
-}
-
 After every agent has attempted to move, the entire population performs its sensory behavior
-
-for p in particles {
-  // Record whether the attempt is successful
-  p.senseNeighbors()
-  if(p.hasSpotAvailable) {
-    p.moveToSpot()
-    p.deposit(chemoattractant)
-  } else {
-    p.stay()
-    p.orientation = orientation.random()
-  }
-}
 
 If the movement is successful (i.e., if the next site is not occupied) the agent moves to the
 new site and deposits a constant chemoattractant value.
-
-if there's actual space available in the movement step, you have SUCCEEDED.
-
-
 
 If the movement is not successful, the agent
 remains in its current position, no chemoattractant is deposited, and a new orientation is randomly selected. Agents are selected from the population randomly in the motor and sensory stages to avoid the
 possibility of long term bias by sequential ordering. The agent both deposits to and senses from the trail
 map, resulting in an autocrine mode of stimulus/response. 
-
-
 */ 
-
-// particle
-// has: sensor distance (SD)
-// sensor angle (SA)
-// heading angle particle is faced towards
-// location (x,y)
-
-//rotation posibilities
-// none 
-// turn randomly
-// turn right (by RA)
-// turn left (by RA)
-
-// move by StA (Step amount)
-// deposite
-// diffuse 
-// decay
-
-//LAYERS:
-// DATA LAYER
-// TRAIL LAYER
 
 // CANVAS SETUP
 const WIDTH = window.innerWidth;
@@ -67,8 +22,8 @@ const midY = HEIGHT/2
 
 function setup() {
   createCanvas(WIDTH,HEIGHT)
+  background(0)
 }
-
 
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -154,11 +109,6 @@ const numParticleArr = Array(numParticles).fill(0);
 // Declare the particles once.
 const particles = numParticleArr.map(n => Particle(initialPos.x, initialPos.y, r))
 
-// Stores the particles and their positions.
-const dataMap = {
-  particles
-}
-
 // convert between screen coordinates and grid coorindates to be able to query the trail map easily
 
 const rotateAmount = Math.PI/4;
@@ -175,16 +125,10 @@ const avgWeight = 1;
 // How much each particle drops on the trail map when it successfully moves. 
 const deposit = 5;
 
-const trailMap = {
-  // Stores  deposit data and is read from
-  // Initialize with an nxn array of values.
-  data: numParticleArr.map(n => [...numParticleArr]) 
-}
+const trailMap = numParticleArr.map(n => [...numParticleArr])
 
-console.log(dataMap)
 console.log(particles[0])
 console.log(trailMap)
-
 
 // What does depositing onto the trail do?
 
@@ -193,13 +137,12 @@ function depositTrail(x,y) {
 
 // MAIN LOOP
 function draw() {
-  background(0)
-  const jiggle = sin(frameCount/20);
-
   // MOTOR STAGE 
   particles.forEach((p,i) => {
     const attemptPos = p.attemptMoveForward(stepAmount)
-    const movedForward = true;
+
+    // TODO: get this boolean from checking ifi there's already a particle in the position ahead
+    const movedForward = false;
     if(movedForward) {
       p.moveTo(attemptPos.x, attemptPos.y)
       depositTrail(attemptPos.x, attemptPos.y)
@@ -230,7 +173,7 @@ function draw() {
     } else {
       // continue facing same  direction
     }
-    
+
     // check if there's already another particle in that attempt position...
     // how do you easily check the positions of other particles in the grid?
     // maybe the grid should store whether there's a particle in it?
