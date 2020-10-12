@@ -17,11 +17,13 @@ map, resulting in an autocrine mode of stimulus/response.
 // CANVAS SETUP
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
+// const WIDTH = 100
+// const HEIGHT = 100
 const midX =  WIDTH/2
 const midY = HEIGHT/2
 
 function setup() {
-  frameRate(30);
+  frameRate(24);
   createCanvas(WIDTH,HEIGHT)
   background(0)
 }
@@ -78,6 +80,11 @@ function Particle(x,y,r) {
     this.position.y = y;
   }
 
+  function moveToRandomPosition() {
+    const {x,y} = getRandomPosition()
+    moveTo(x,y)
+  }
+
   // Main rendering function
   function draw() {
     return ellipse(this.position.x, this.position.y, this.r, this.r)
@@ -95,6 +102,7 @@ function Particle(x,y,r) {
     scaleBy,
     moveTo,
     moveBy,
+    moveToRandomPosition,
     getMoveForward,
     draw
   }
@@ -124,8 +132,8 @@ const particles = numParticleArr.map(n =>{
 // 22.5 degrees
 const rotateAmount = Math.PI/4;
 const percent = (num) => Math.max(WIDTH,HEIGHT)*(num/100)
-const stepAmount = percent(1)
-const decayAmount = 0.1;
+const stepAmount = percent(1)*2
+const decayAmount = 0.01;
 
 const sensorAngle = Math.PI/4;
 // offset in number of grid units.
@@ -183,6 +191,7 @@ function draw() {
 
   for(let i = 0; i < particles.length; i++) {
     const p = particles[i]
+
     // MOTOR STAGE 
     const currGridPos = screenToGrid(p.position.x, p.position.y)
     const curr = trailMap[currGridPos.x][currGridPos.y]
@@ -217,11 +226,12 @@ function draw() {
 
       // If you  are about to go out of bounds, bounce off.
       p.rotateBy(Math.PI)
+      // p.moveToRandomPosition();
     }
 
       // These are essentialy samples from the trail map of a given size (SW, sensor width) and at a given diistance (SO, sensor offset)
 
-    // SENSORY STAGE 
+    // SENSORY STAGE
     const Fpos = p.getMoveForward(sensorOffset)
     const FposGrid = screenToGrid(Fpos.x, Fpos.y)
 
@@ -259,24 +269,32 @@ function draw() {
         }
     } else {
       // Otherwise hit a wall, turn around
-      p.rotateBy(Math.PI)
+      // p.rotateBy(Math.PI)
+      p.moveToRandomPosition();
     }
     // Finally, after its done sensing, draw the particle
-    fill(255)
     p.draw()
   }
 
-  // Diffuse and decay the trail map
-  for(let r = 0; r < trailMap.length; r++) {
-    const row = trailMap[r]
-    for(let c = 0; c < trailMap[r].length; c++) {
-      const point = trailMap[r][c]
-      const screenPoint = gridToScreen(r,c)
-      trailMap[r][c].value -= (trailMap[r][c].value * decayAmount)
-      let trailColor = color(255);
-      trailColor.setAlpha(trailMap[r][c].value)
-      fill(trailColor)
-      ellipse(screenPoint.x, screenPoint.y, 2.5, 2.5)
-    }
-  }
+    // Diffuse and decay the trail map
+  // for(let r = 0; r < trailMap.length; r++) {
+  //   for(let c = 0; c < trailMap[r].length; c++) {
+  //     const point = trailMap[r][c]
+  //     const screenPoint = gridToScreen(r,c)
+  //     trailMap[r][c].value -= (trailMap[r][c].value * decayAmount)
+  //     const opacity = (trailMap[r][c].value/depositAmount)
+  //     if(opacity > 0) {
+  //       // console.log(opacity)
+  //       let trailColor = color(255);
+  //       trailColor.setAlpha(trailMap[r][c].value/depositAmount);
+  //       fill(trailColor);
+  //     } else {
+
+  //       fill(255)
+  //     }
+     
+  //     // ellipse(screenPoint.x, screenPoint.y, 2.5, 2.5)
+  //   }
+  // }
+
 }
